@@ -11,12 +11,15 @@ import {SwapParams} from "v4-core/src/types/PoolOperation.sol";
 import {BalanceDelta} from "v4-core/src/types/BalanceDelta.sol";
 import {BeforeSwapDelta, toBeforeSwapDelta} from "v4-core/src/types/BeforeSwapDelta.sol";
 import {LaunchConstants} from "./LaunchConstants.sol";
+import {Workshop} from "./Workshop.sol";
 
 /// @notice Fixed 2% fee on gross IMD: total IMD input on buys, pre-hook IMD output on sells.
-/// @dev All fees belong to Workshop. No admin, mutable configuration, or job calls during swaps.
+/// @dev All fees belong to the Workshop this hook deploys in its constructor. No admin, mutable
+/// configuration, or job calls during swaps.
 contract SelfHook is IUnlockCallback {
     IPoolManager public immutable poolManager;
     address public immutable token;
+    /// @notice The Workshop created by this hook's constructor: the only recipient of hook fees.
     address public immutable workshop;
     bool private immutable _imdIs0;
     Currency public constant IMD = Currency.wrap(LaunchConstants.IMD);
@@ -32,14 +35,15 @@ contract SelfHook is IUnlockCallback {
     event FeeDeferred(uint256 amount);
     event FeesRedeemed(uint256 amount);
 
-    constructor(IPoolManager manager_, address token_, address workshop_) {
-        if (
-            address(manager_) == address(0) || token_ == address(0) || workshop_ == address(0)
-                || token_ == LaunchConstants.IMD || workshop_ == address(this)
-        ) revert InvalidAddress();
+    /// @dev There is no pre-deployed Workshop, so the hook creates the only one it will ever pay.
+    /// `new Workshop()` is a plain CREATE with no arguments; it calls no existing contract.
+    constructor(IPoolManager manager_, address token_) {
+        if (address(manager_) == address(0) || token_ == address(0) || token_ == LaunchConstants.IMD) {
+            revert InvalidAddress();
+        }
         poolManager = manager_;
         token = token_;
-        workshop = workshop_;
+        workshop = address(new Workshop());
         _imdIs0 = LaunchConstants.IMD < token_;
         Hooks.validateHookPermissions(IHooks(address(this)), getHookPermissions());
     }

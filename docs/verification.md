@@ -1,17 +1,18 @@
 # Verification record
 
-Checked locally on 2026-10-14 with Foundry 1.8.5 and the project-pinned Solidity 0.8.26 compiler. These are contributor check results, not independent review or production attestations.
+Checked locally on 2026-10-14 with Foundry 1.8.5 and the project-pinned Solidity 0.8.26 compiler; re-checked the same day with Foundry 1.8.3 after `SelfHook` was changed to deploy its own `Workshop` (see the last row). These are contributor check results, not independent review or production attestations.
 
 | Check | Result |
 | --- | --- |
 | `forge build` / `forge build --offline` | Passed; all imported Solidity dependencies are local ordinary files. |
-| `forge test --offline -vv` | **64 tests passed**, zero failed, zero skipped, across eight suites. |
-| Required fuzz seed | `0x99916e5cf1208eaffc733ca5fdb62b7fe1882a6253cfc072044785ff4763acb9`, pinned and also supplied for the final run. |
+| `forge test --offline -vv` | **68 tests passed**, zero failed, zero skipped, across eight suites. |
+| Required fuzz seed | `0x99916e5cf1208eaffc733ca5fdb62b7fe1882a6253cfc072044785ff4763acb9`, pinned; the re-check also ran with the verifier seed `0x96c896b0d32c81928a05b8eedbff5d3a6cfcb4c4d01d4cfe83bf1d35397bd528`. |
 | Fuzz tests | 256 runs each: four swap modes in both currency orders with partial/full fills, token transfers, and dynamic-price/bounty conservation. |
 | Stateful invariants | 64 sequences × 32 calls each; zero handler reverts. Hook conservation/fees and Workshop timing, rotation, and spending invariants passed. |
 | `FOUNDRY_PROFILE=fork forge test -vv` | **5 tests passed**, zero failed/skipped; real Robinhood IMD and Intake v2, freshly deployed local PoolManager and launch contracts. |
 | `forge fmt --check` | Passed. |
-| `node --test web/test/*.test.mjs` | **8 tests passed**; ABI decoding, URI filtering, precision, countdown, reorg replacement, pagination, block-consistent reads, errors and configuration. |
+| `node --test web/test/*.test.mjs` | **12 tests passed**; ABI decoding, URI filtering, precision, countdown, reorg replacement, pagination, block-consistent reads, errors and configuration, plus the gallery configuration script reading `workshop()` from the hook through a stub JSON-RPC server (success, refusals, untouched config on failure). |
+| Hook-created Workshop | `SelfHook(manager, token)` deploys a `Workshop` with no external code present; `workshop()` equals the hook's first `CREATE` address and carries byte-identical `Workshop` runtime; two hooks create distinct Workshops; invalid arguments or an address without the hook bits revert and leave no Workshop behind. Every fixture reads the Workshop from `hook.workshop()`; the fork suite compiles unchanged and was not re-run (offline). |
 | Browser QA | Chromium headless: 1440 px desktop and 390 px mobile; no JavaScript errors or horizontal overflow. Mocked-RPC browser flow verified real DOM rendering, newest-first items, unsafe-URI fallback, wallet transaction construction, stale-state disablement, and retained items during RPC failure. |
 | Callback gas | Maximum 2,048-byte URI, nonzero hash, cold account/storage: **138,256 gas**, below 150,000. Fork callback also succeeded with a 149,999-gas call budget. |
 | Runtime escape hatches | SelfToken, SelfHook and Workshop passed opcode scans for DELEGATECALL, CALLCODE and SELFDESTRUCT; admin selector probes failed as intended. |

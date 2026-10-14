@@ -27,10 +27,12 @@ The fork uses Robinhood Chain **4663**, public RPC `https://rpc.mainnet.chain.ro
 | Contract | Constructor | Purpose |
 | --- | --- | --- |
 | `SelfToken` | none | ERC-20 `Self Made` / `SELF`, 18 decimals, exactly 1,000,000,000 tokens (`10^27` units), minted once to its deployer, the launch factory. |
-| `Workshop` | none | Fixed protocol addresses and exact constant job bodies; permissionless commissions and authenticated delivery records. |
-| `SelfHook` | `IPoolManager manager`, `address token`, `address workshop` | The launch supplies `$poolManager`, `$token`, and the newly deployed Workshop. None is an owner. |
+| `Workshop` | none | Fixed protocol addresses and exact constant job bodies; permissionless commissions and authenticated delivery records. **Not deployed by the launch**: `SelfHook` creates it. |
+| `SelfHook` | `IPoolManager manager`, `address token` | The launch supplies only the documented placeholders `$poolManager` and `$token`. The constructor runs `new Workshop()` and exposes the result as the immutable `workshop()`; all hook fees go to that address. Neither argument is an owner. |
 
-There is **no owner, admin, pause, blacklist, mint-after-deployment, withdrawal, upgrade, mutable fee, or setter** in these contracts. Constructors make no external calls and require no external code to exist. IMD and Intake are deliberately constants because this brief requires immutable contracts:
+There is no pre-deployed Workshop. Because `Workshop` takes no constructor arguments (IMD and Intake are constants), the hook deploys its own copy with a plain `CREATE` from its constructor. The Workshop address is therefore `keccak256(rlp([hookAddress, 1]))`, the hook's first creation, and is read after launch with `SelfHook.workshop()`. The hook's init code embeds the Workshop's creation code; its runtime does not.
+
+There is **no owner, admin, pause, blacklist, mint-after-deployment, withdrawal, upgrade, mutable fee, or setter** in these contracts. Constructors make no external calls and require no external code to exist: creating the Workshop is a contract creation, not a call to an existing contract, so the launch's empty-chain constructor check still passes. IMD and Intake are deliberately constants because this brief requires immutable contracts:
 
 - IMD: `0x5f7bb59365ce557c26dbcaa4ee9d39a4b95b7127` (18 decimals).
 - Intake v2: `0xa43e6f75ee006411f79ac1c84120606c2330de82`.
@@ -72,11 +74,11 @@ Views include `nextTemplate()`, `lastCommissionAt()`, `commissionsToday()`, `can
 
 ## Launch preparation
 
-This repository does not deploy or broadcast, and deliberately has no `launch.json`. The later manifest/deployer supplies actual addresses and the factory's policy. Deploy `SelfToken` and `Workshop` first, then mine and deploy `SelfHook` with those immutable addresses and the supplied PoolManager. Initialize and seed the pool through the launch factory in its deployment transaction.
+This repository does not deploy or broadcast, and deliberately has no `launch.json`. The later manifest/deployer supplies actual addresses and the factory's policy. The manifest's `SelfHook` entry needs only `constructorArgs: ["$poolManager", "$token"]`; it lists no Workshop, because none exists before the hook is deployed and the hook creates it. Deploy `SelfToken` first, then mine and deploy `SelfHook` with the token address and the supplied PoolManager. Initialize and seed the pool through the launch factory in its deployment transaction.
 
-`script/MineSelfHook.s.sol:MineSelfHook` provides a pure, bounded CREATE2 miner. Its `run(factory, poolManager, token, workshop, start, attempts)` returns the salt, predicted address, and init-code hash. It uses the **factory address**, not a wallet or the script address. Maximum search batch is 1,000,000 candidates. Continue another range if no salt is found. A test mines, actually deploys, and checks the resulting constructor arguments and bits. The production factory's actual CREATE2 salt convention must be used; if it transforms salts, use its own miner with the same `0x20cc` mask.
+`script/MineSelfHook.s.sol:MineSelfHook` provides a pure, bounded CREATE2 miner. Its `run(factory, poolManager, token, start, attempts)` returns the salt, predicted address, and init-code hash. It uses the **factory address**, not a wallet or the script address. Maximum search batch is 1,000,000 candidates. Continue another range if no salt is found. A test mines, actually deploys, and checks the resulting constructor arguments and bits. The production factory's actual CREATE2 salt convention must be used; if it transforms salts, use its own miner with the same `0x20cc` mask.
 
-After launch, the deployer verifies the three sources and their constructor arguments, publishes the addresses and deployment block, confirms the correct pool key and hook bits, and configures the static gallery. No contract configuration transactions are possible or required. Independent adversarial review remains a release responsibility; passing these tests is not an audit.
+After launch, the deployer verifies the three sources and their constructor arguments (`Workshop` has none and is verified at the address `SelfHook.workshop()` reports), publishes the hook and Workshop addresses and the deployment block, confirms the correct pool key and hook bits, and configures the static gallery from the hook as described below. No contract configuration transactions are possible or required. Independent adversarial review remains a release responsibility; passing these tests is not an audit.
 
 ## Gallery and logo
 
@@ -84,13 +86,16 @@ After launch, the deployer verifies the three sources and their constructor argu
 python3 -m http.server 8080 --directory web
 ```
 
-Open `http://localhost:8080`. The site ships in an honest **prelaunch** state with no made-up contract address or sample results. After deployment:
+Open `http://localhost:8080`. The site ships in an honest **prelaunch** state with no made-up contract address or sample results. After deployment, give the configuration script the **hook** address; it reads `workshop()` from the hook over JSON-RPC and writes that address into `web/config.json`. The Workshop address is never typed by hand, so the gallery can only point at the Workshop the hook actually pays:
 
 ```sh
-python3 scripts/configure-gallery.py \
-  --workshop ACTUAL_DEPLOYED_WORKSHOP_ADDRESS \
-  --deployment-block ACTUAL_DEPLOYMENT_BLOCK
+node scripts/configure-gallery.mjs \
+  --hook ACTUAL_DEPLOYED_SELFHOOK_ADDRESS \
+  --deployment-block ACTUAL_DEPLOYMENT_BLOCK \
+  [--rpc-url https://a-public-cors-enabled-robinhood-rpc]
 ```
+
+The script refuses to write when the RPC is not chain 4663, the hook or the reported Workshop has no code, or `workshop()` does not return a nonzero address. It uses the RPC in `web/config.json` unless `--rpc-url` is given, in which case it also records that endpoint. It is tested against a stub RPC by `node --test web/test/*.test.mjs`.
 
 Publish the `web/` directory on any static host. It requires no build step, CDN, package manager, backend, indexer, or wallet to read. Configure a public CORS-enabled Robinhood RPC in `web/config.json`; never publish an API secret. The gallery pages `Built` logs from the deployment block, newest first, refreshes every 15 seconds, and re-reads a 20-block overlap for shallow reorgs with two confirmation blocks. Displayed data is provisional, not a finality guarantee. Network errors retain loaded items and disable commissioning until fresh data is available. IMD balance, price, bounty, timing and readiness are read at the same block. The countdown uses chain time and reports when funding is insufficient.
 

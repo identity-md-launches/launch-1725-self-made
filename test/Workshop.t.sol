@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.26;
-import {Test} from "forge-std/Test.sol";
+import {HookDeployer} from "./helpers/HookDeployer.sol";
 import {Workshop} from "../src/Workshop.sol";
 import {LaunchConstants} from "../src/LaunchConstants.sol";
 import {IIntake} from "../src/interfaces/IIntake.sol";
@@ -8,7 +8,7 @@ import {WorkOrders} from "../src/WorkOrders.sol";
 import {MockERC20} from "./mocks/MockERC20.sol";
 import {MockIntake} from "./mocks/MockIntake.sol";
 
-contract WorkshopTest is Test {
+contract WorkshopTest is HookDeployer {
     Workshop internal shop;
     MockERC20 internal imd;
     MockIntake internal intake;
@@ -25,7 +25,8 @@ contract WorkshopTest is Test {
         imd = MockERC20(LaunchConstants.IMD);
         intake = MockIntake(LaunchConstants.INTAKE);
         intake.configure(PRICE, false, false, false);
-        shop = new Workshop();
+        // The Workshop under test is the one the hook deploys, read from hook.workshop().
+        shop = workshopFromHook();
         keeper = makeAddr("permissionless keeper");
     }
 

@@ -2,6 +2,7 @@
 pragma solidity 0.8.26;
 import {Test} from "forge-std/Test.sol";
 import {HookFixture} from "./helpers/HookFixture.sol";
+import {HookDeployer} from "./helpers/HookDeployer.sol";
 import {PoolDriver} from "./helpers/PoolDriver.sol";
 import {MockERC20} from "./mocks/MockERC20.sol";
 import {MockIntake} from "./mocks/MockIntake.sol";
@@ -112,7 +113,7 @@ contract WorkshopHandler is Test {
     }
 }
 
-contract WorkshopInvariantTest is Test {
+contract WorkshopInvariantTest is HookDeployer {
     Workshop internal shop;
     WorkshopHandler internal handler;
     MockERC20 internal imd;
@@ -125,7 +126,7 @@ contract WorkshopInvariantTest is Test {
         vm.etch(LaunchConstants.INTAKE, address(new MockIntake()).code);
         MockIntake(LaunchConstants.INTAKE).configure(PRICE, false, false, false);
         imd = MockERC20(LaunchConstants.IMD);
-        shop = new Workshop();
+        shop = workshopFromHook();
         handler = new WorkshopHandler(shop);
         imd.mint(address(shop), FUNDS);
         targetContract(address(handler));

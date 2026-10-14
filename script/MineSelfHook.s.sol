@@ -9,18 +9,16 @@ contract MineSelfHook {
     error NoSaltInRange();
     error InvalidRange();
 
-    function run(
-        address factory,
-        IPoolManager manager,
-        address token,
-        address workshop,
-        uint256 start,
-        uint256 attempts
-    ) external pure returns (bytes32 salt, address predicted, bytes32 initCodeHash) {
+    /// @dev The hook's only constructor arguments are the PoolManager and the token; it deploys its own Workshop.
+    function run(address factory, IPoolManager manager, address token, uint256 start, uint256 attempts)
+        external
+        pure
+        returns (bytes32 salt, address predicted, bytes32 initCodeHash)
+    {
         if (factory == address(0) || attempts > 1_000_000 || start > type(uint256).max - attempts) {
             revert InvalidRange();
         }
-        initCodeHash = keccak256(abi.encodePacked(type(SelfHook).creationCode, abi.encode(manager, token, workshop)));
+        initCodeHash = keccak256(abi.encodePacked(type(SelfHook).creationCode, abi.encode(manager, token)));
         for (uint256 i; i < attempts; ++i) {
             salt = bytes32(start + i);
             predicted =

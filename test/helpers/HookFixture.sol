@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.26;
-import {Test} from "forge-std/Test.sol";
+import {HookDeployer} from "./HookDeployer.sol";
 import {PoolManager} from "v4-core/src/PoolManager.sol";
 import {IPoolManager} from "v4-core/src/interfaces/IPoolManager.sol";
 import {PoolKey} from "v4-core/src/types/PoolKey.sol";
@@ -9,11 +9,10 @@ import {Currency} from "v4-core/src/types/Currency.sol";
 import {SelfToken} from "../../src/SelfToken.sol";
 import {SelfHook} from "../../src/SelfHook.sol";
 import {Workshop} from "../../src/Workshop.sol";
-import {HookFlags} from "../../src/HookFlags.sol";
 import {LaunchConstants} from "../../src/LaunchConstants.sol";
 import {PoolDriver} from "./PoolDriver.sol";
 
-abstract contract HookFixture is Test {
+abstract contract HookFixture is HookDeployer {
     PoolManager internal manager;
     SelfToken internal self;
     SelfHook internal hook;
@@ -25,7 +24,6 @@ abstract contract HookFixture is Test {
 
     function deploySystem(bool imdIs0) internal {
         manager = new PoolManager(address(this));
-        shop = new Workshop();
         // Mine only token ordering (no synthetic production addresses).
         for (uint256 salt;; ++salt) {
             address predicted =
@@ -35,16 +33,9 @@ abstract contract HookFixture is Test {
                 break;
             }
         }
-        bytes32 initHash =
-            keccak256(abi.encodePacked(type(SelfHook).creationCode, abi.encode(manager, address(self), address(shop))));
-        for (uint256 salt; salt < 300_000; ++salt) {
-            address predicted = vm.computeCreate2Address(bytes32(salt), initHash, address(this));
-            if (HookFlags.matches(predicted, HookFlags.SELF)) {
-                hook = new SelfHook{salt: bytes32(salt)}(IPoolManager(address(manager)), address(self), address(shop));
-                break;
-            }
-        }
-        require(address(hook) != address(0), "salt not found");
+        hook = deployHook(IPoolManager(address(manager)), address(self));
+        // The hook creates its own Workshop; tests read it from the hook rather than deploying one.
+        shop = Workshop(hook.workshop());
         driver = new PoolDriver(manager);
         key = hook.poolKey();
         manager.initialize(key, ONE);

@@ -11,11 +11,6 @@
         "name": "token_",
         "type": "address",
         "internalType": "address"
-      },
-      {
-        "name": "workshop_",
-        "type": "address",
-        "internalType": "address"
       }
     ],
     "stateMutability": "nonpayable"
