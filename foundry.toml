@@ -1,0 +1,28 @@
+[profile.default]
+src = "src"
+test = "test"
+script = "script"
+libs = ["lib"]
+solc = "0.8.26"
+evm_version = "cancun"
+optimizer = true
+optimizer_runs = 200
+bytecode_hash = "none"
+# Fork tests are opt-in so the complete default suite runs without network.
+no_match_path = "test/fork/*"
+
+[profile.default.fuzz]
+runs = 256
+seed = "0x99916e5cf1208eaffc733ca5fdb62b7fe1882a6253cfc072044785ff4763acb9"
+
+[profile.default.invariant]
+runs = 64
+depth = 32
+fail_on_revert = true
+
+[profile.fork]
+no_match_path = "test/never-match/*"
+match_path = "test/fork/*"
+
+[fmt]
+line_length = 120

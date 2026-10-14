@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#080a07">
+  <meta name="description" content="Self Made: the token whose trading fees hire an AI swarm. Explore everything SELF made for itself.">
+  <title>Self Made — The token that builds itself</title>
+  <link rel="icon" type="image/svg+xml" href="assets/self-logo.svg">
+  <link rel="stylesheet" href="style.css">
+  <script type="module" src="app.mjs"></script>
+</head>
+<body>
+  <header class="nav wrap">
+    <a class="brand" href="#"><img src="assets/self-logo.svg" width="46" height="46" alt="Self Made robot hand"><span>SELF MADE<span class="ticker">$SELF</span></span></a>
+    <a class="nav-link" href="#gallery">Enter the workshop <span aria-hidden="true">↗</span></a>
+  </header>
+  <main>
+    <section class="hero wrap">
+      <div class="eyebrow"><span class="dot"></span> ROBINHOOD CHAIN / BUILT BY ITS OWN FEES</div>
+      <h1>A token with<br>work to <em>do.</em></h1>
+      <div class="hero-bottom"><p>Every trade funds the next creation.<br>Memes. Videos. Research. Audits.<br>The fees hire the swarm. The work lives here.</p><img class="hero-mark" src="assets/self-logo.svg" width="144" height="144" alt="A robot hand drawing itself"></div>
+      <div class="mechanism" aria-label="How Self Made works"><span><b>01</b> Trade SELF / IMD</span><span aria-hidden="true">→</span><span><b>02</b> 2% IMD to Workshop</span><span aria-hidden="true">→</span><span><b>03</b> The swarm creates</span></div>
+    </section>
+    <section class="workshop-band" aria-label="Live Workshop status">
+      <div class="wrap">
+        <div class="status-heading"><span class="eyebrow">WORKSHOP / LIVE LEDGER</span><span id="connection" class="status" role="status">Connecting…</span></div>
+        <div class="metrics">
+          <div><span class="metric-label">Workshop balance</span><strong id="balance">— <small>IMD</small></strong><span id="funding-note" class="metric-note">Trading fees fund the next work order.</span></div>
+          <div><span class="metric-label">Next possible commission</span><strong id="countdown" class="countdown">—</strong><span id="countdown-note" class="metric-note">At least 6 hours between commissions.</span></div>
+          <div><span class="metric-label">Commissions today · UTC</span><strong><span id="today">—</span><small> / 4</small></strong><span id="next-template" class="metric-note">Next work order: —</span></div>
+        </div>
+        <div class="commission-row"><p id="commission-note">Anyone can call the Workshop. Its fixed rules decide when it can hire.</p><button id="commission" type="button" disabled>Commission next work <span aria-hidden="true">↗</span></button></div>
+        <p id="transaction-status" class="transaction-status" role="status" aria-live="polite"></p>
+      </div>
+    </section>
+    <section class="gallery-section wrap" id="gallery">
+      <div class="gallery-heading"><div><div class="eyebrow">THE OUTPUT / NEWEST FIRST</div><h2>Everything this token<br>made for itself.</h2></div><span class="count-pill"><span id="built-count">0</span> delivered</span></div>
+      <div id="gallery-state" class="empty-state" role="status"><span class="empty-symbol" aria-hidden="true">✳</span><h3>The workshop is warming up.</h3><p>Delivered work appears here automatically when Intake publishes a result.</p></div>
+      <div id="works" class="gallery"></div>
+      <p id="history-status" class="history-status" role="status"></p>
+    </section>
+    <section class="rules wrap">
+      <h2>Set in code.<br>Made in public.</h2>
+      <div><p>No owner. No admin. No upgrades. Four fixed work orders rotate forever. IMD can leave the Workshop only to pay Intake and the caller’s 2% price bounty.</p><p>A public caller submits each commission transaction when funds and time allow. Results depend on the swarm and Intake. Failed or missing deliveries do not stop the next work order.</p><a id="contract-link" class="text-link" hidden target="_blank" rel="noopener noreferrer">Read the Workshop onchain ↗</a></div>
+    </section>
+  </main>
+  <footer class="wrap"><span>SELF MADE <span class="dim">/ THE TOKEN THAT BUILDS ITSELF</span></span><a href="assets/self-logo.svg" download>Logo SVG ↓</a></footer>
+  <noscript><p class="wrap">JavaScript is needed to read live blockchain data. No wallet is needed to view the gallery.</p></noscript>
+</body>
+</html>

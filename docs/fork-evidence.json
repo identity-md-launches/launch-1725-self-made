@@ -1,0 +1,12 @@
+{
+  "chainId": 4663,
+  "rpcUrl": "https://rpc.mainnet.chain.robinhood.com",
+  "blockNumber": 88278305,
+  "blockHash": "0xebbd9c91ee38d1ac606a19bf358d68c3644cf87ed6e8670db3e95b0d48e5dfaa",
+  "blockTimestamp": "0x6acf52a5",
+  "intake": "0xa43e6f75ee006411f79ac1c84120606c2330de82",
+  "asset": "0x5f7bb59365ce557c26dbcaa4ee9d39a4b95b7127",
+  "action": "job.open@job-1",
+  "observedPriceMinorUnits": "500000000000000000",
+  "notes": "Fork test reads priceOf at runtime. This observation is evidence, not a contract constant."
+}

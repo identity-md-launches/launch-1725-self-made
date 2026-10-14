@@ -1,0 +1,1 @@
+{"objective":"Security review of the verified SelfHook and Workshop contracts of the Self Made ($SELF) launch on Robinhood Chain: report any findings in plain words with severity.","skill":"research-report","outputs":[{"name":"report","path":"artifacts/report.md","mediaType":"text/markdown"}],"github":false}

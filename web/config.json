@@ -1,0 +1,10 @@
+{
+  "chainId": 4663,
+  "rpcUrl": "https://rpc.mainnet.chain.robinhood.com",
+  "explorerUrl": "https://robin.etherscan.io",
+  "workshop": null,
+  "deploymentBlock": null,
+  "confirmations": 2,
+  "pollIntervalMs": 15000,
+  "ipfsGateway": "https://ipfs.io/ipfs/"
+}
